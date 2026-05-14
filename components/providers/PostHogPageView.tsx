@@ -2,8 +2,8 @@
 
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useEffect } from "react";
-import { usePostHog } from "posthog-js/react";
 
+import { safePosthogCapture } from "@/lib/posthog/client-ready";
 import { isPosthogConfigured } from "@/lib/posthog/config";
 
 /**
@@ -13,18 +13,17 @@ import { isPosthogConfigured } from "@/lib/posthog/config";
 function PostHogPageViewInner() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const posthog = usePostHog();
 
   useEffect(() => {
-    if (!pathname || !posthog) return;
+    if (!pathname) return;
     const q = searchParams?.toString();
     const path = q ? `${pathname}?${q}` : pathname;
-    posthog.capture("$pageview", {
+    safePosthogCapture("$pageview", {
       path,
       pathname,
       search: q || undefined,
     });
-  }, [pathname, posthog, searchParams]);
+  }, [pathname, searchParams]);
 
   return null;
 }

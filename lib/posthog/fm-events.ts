@@ -1,6 +1,6 @@
 "use client";
 
-import posthog from "posthog-js";
+import { safePosthogCapture } from "@/lib/posthog/client-ready";
 
 /** Product analytics event names (PostHog + optional Supabase `events.event_name`). */
 export const FRIEND_MIRROR_POSTHOG_EVENTS = [
@@ -29,9 +29,5 @@ export function captureFriendMirrorEvent(
   props?: Record<string, unknown>,
 ): void {
   if (!ALLOWED.has(name)) return;
-  try {
-    posthog.capture(name, props);
-  } catch {
-    /* PostHog not initialised */
-  }
+  safePosthogCapture(name, props);
 }
