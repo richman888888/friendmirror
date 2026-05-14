@@ -17,5 +17,3 @@ export function isSupabaseAnonConfigured(): boolean {
       !key.includes(" "),
   );
 }
-
-export { isPosthogConfigured } from "@/lib/posthog/config";

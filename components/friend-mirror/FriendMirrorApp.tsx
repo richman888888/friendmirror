@@ -13,6 +13,7 @@ import {
   fetchVoteStatsForShareCode,
   getPublicEngagementAction,
   recordEventAction,
+  recordVotePageOpenedAction,
   submitVotesAction,
 } from "@/app/actions/friend-mirror";
 import { TAG_IDS, type TagId } from "@/lib/friend-mirror/constants";
@@ -29,7 +30,6 @@ import {
   type TagStat,
 } from "@/lib/friend-mirror/mock";
 import { ResultWrappedExperience } from "@/components/friend-mirror/ResultWrappedExperience";
-import { captureFriendMirrorEvent } from "@/lib/posthog/fm-events";
 import {
   formatParticipantCount,
   PARTICIPANT_COUNT,
@@ -539,10 +539,6 @@ export default function FriendMirrorApp({
         shareSource: opts?.shareSource ?? null,
         metadata: metadata ?? {},
       });
-      captureFriendMirrorEvent(eventName, {
-        share_code: shareId || undefined,
-        ...metadata,
-      });
     },
     [shareId],
   );
@@ -565,13 +561,13 @@ export default function FriendMirrorApp({
     if (!shareId) return;
     if (votePagePhRef.current) return;
     votePagePhRef.current = true;
-    captureFriendMirrorEvent("vote_page_opened", {
-      share_code: shareId,
-      mode,
-    });
+    void recordVotePageOpenedAction(shareId);
     if (mode === "friend") {
-      captureFriendMirrorEvent("referral_opened", {
-        ref_share_code: shareId,
+      void recordEventAction({
+        eventName: "referral_opened",
+        shareCode: shareId,
+        refShareCode: shareId,
+        metadata: { mode },
       });
     }
   }, [step, shareId, mode]);
@@ -668,9 +664,14 @@ export default function FriendMirrorApp({
       has_profile_id: Boolean(res.profileId),
     });
     if (res.referralApplied) {
-      captureFriendMirrorEvent("referral_converted", {
-        new_user_share_code: res.shareCode,
-        referrer_share_code: res.referrerShareCode ?? undefined,
+      void recordEventAction({
+        eventName: "referral_converted",
+        shareCode: res.shareCode,
+        refShareCode: res.referrerShareCode ?? null,
+        metadata: {
+          new_user_share_code: res.shareCode,
+          referrer_share_code: res.referrerShareCode ?? undefined,
+        },
       });
     }
     setStep("invite");

@@ -23,7 +23,7 @@ export type ResultShareStorySectionProps = {
   /** Plain URL without tracking (display / fallback). */
   shareUrl: string;
   participantCount: number | null;
-  /** Fire after user taps an outbound share surface (DB + PostHog handled upstream). */
+  /** Fire after user taps an outbound share surface (DB events handled upstream). */
   onShareOutbound?: (source: ShareSource) => void | Promise<void>;
   showToast: (msg: string) => void;
 };
